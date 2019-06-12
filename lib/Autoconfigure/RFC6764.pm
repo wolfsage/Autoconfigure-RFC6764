@@ -85,8 +85,8 @@ sub lookup {
 
   my $select = IO::Select->new;
 
-  for my $host (keys %$to_lookup) {
-    for my $type (keys %{ $to_lookup->{$host} }) {
+  for my $host (sort keys %$to_lookup) {
+    for my $type (sort keys %{ $to_lookup->{$host} }) {
       my $sock = $self->resolver->bgsend($host, $type);
       unless ($sock) {
         croak("Failed to bgsend: " . $self->resolver->errorstring);

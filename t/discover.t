@@ -117,10 +117,6 @@ test "carddav only - override" => sub {
   ) or diag explain $conf;
 };
 
-test "timeout" => sub {
-  ok(1);
-};
-
 test "bad email" => sub {
   my $ac = basic_mocked_autoconfigure;
 
@@ -244,6 +240,27 @@ test "srv sorts properly" => sub {
     $conf,
     {
       caldav  => 'https://picked.example.net/.well-known/caldav',
+    },
+    "good response",
+  ) or diag explain $conf;
+};
+
+test "timeout" => sub {
+  my $ac = basic_mocked_autoconfigure(
+    { timeout => 3 },
+    { include_txt => 1, sleep_after_seconds => 5 },
+  );
+
+  my $conf = $ac->discover('test@example.net');
+
+  # We'll get one answer and then nothing before the timeout.
+  # That one answer should be the non-secure caldav SRV record
+  # since _caldav. sorts before _caldavs. and txt sorts before
+  # srv and the lookup query order is deterministic
+  cmp_deeply(
+    $conf,
+    {
+      caldav  => 'http://caldav.example.net/.well-known/caldav',
     },
     "good response",
   ) or diag explain $conf;

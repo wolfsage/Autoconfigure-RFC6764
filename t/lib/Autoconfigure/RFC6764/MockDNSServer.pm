@@ -17,6 +17,12 @@ has matchers => (
   default => sub { {} },
 );
 
+has sleep_after_seconds => (
+  is => 'ro',
+  isa => 'Int',
+  default => 0,
+);
+
 sub reset {
   shift->{matchers} = {};
 }
@@ -33,6 +39,8 @@ sub resolver_for {
 sub as_server {
   my ($self) = @_;
 
+  my $sleep = $self->sleep_after_seconds;
+
   return Test::TCP->new(
     listen => 1,
     proto  => 'udp',
@@ -42,6 +50,7 @@ sub as_server {
         $socket->recv(my $data, 65535);
         my $packet = Net::DNS::Packet->new(\$data);
         $socket->send($self->query_handler($packet));
+        sleep $sleep if $sleep;
       }
     }
   );
@@ -88,7 +97,11 @@ sub query_handler {
 sub basic_mocker {
   my ($class, $opt) = @_;
 
-  my $mock = __PACKAGE__->new;
+  my $sleep = delete $opt->{sleep_after_seconds};
+
+  my $mock = __PACKAGE__->new({
+    sleep_after_seconds => $sleep // 0,
+  });
 
   my $alt = $opt->{alt_ports};
 
