@@ -21,6 +21,15 @@ sub reset {
   shift->{matchers} = {};
 }
 
+sub resolver_for {
+  my ($self, $server) = @_;
+
+  return Net::DNS::Resolver->new(
+    nameservers => [ '127.0.0.1' ],
+    port        => $server->port,
+  );
+}
+
 sub as_server {
   my ($self) = @_;
 
@@ -77,6 +86,8 @@ sub query_handler {
 }
 
 sub basic_mocker {
+  my ($class, $opt) = @_;
+
   my $mock = __PACKAGE__->new;
 
   $mock->add({
@@ -112,6 +123,30 @@ sub basic_mocker {
     target   => 'carddav.example.net',
     port     => 80,
   });
+
+  if ($opt->{include_txt}) {
+    $mock->add({
+      host     => '_caldavs._tcp.example.net',
+      type     => 'txt',
+      txtdata  => [ "txtversion=1", "path=/foocalsecure" ],
+    });
+    $mock->add({
+      host     => '_caldav._tcp.example.net',
+      type     => 'txt',
+      txtdata  => [ "txtversion=1", "path=/foocal" ],
+    });
+
+    $mock->add({
+      host     => '_carddavs._tcp.example.net',
+      type     => 'txt',
+      txtdata  => [ "txtversion=1", "path=/foocardsecure" ],
+    });
+    $mock->add({
+      host     => '_carddav._tcp.example.net',
+      type     => 'txt',
+      txtdata  => [ "txtversion=1", "path=/foocard" ],
+    });
+  }
 
   return $mock;
 }
