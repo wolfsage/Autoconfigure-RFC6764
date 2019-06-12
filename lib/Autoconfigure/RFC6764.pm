@@ -214,3 +214,80 @@ sub records_to_urls {
 }
 
 1;
+__END__
+
+=head1 SYNOPSIS
+
+  use Autoconfigure::RFC6764;
+
+  my $ac = Autoconfigure::RFC6764->new;
+
+  my $conf = $ac->discover('foo@example.net');
+
+  my $caldav_url = $conf->{caldav};
+  my $carddav_url = $conf->{carddav};
+
+  # Only care about caldav
+  $ac->discover($email, { check_carddav => 0 });
+
+  # ... or ...
+  my $ac = Autoconfigure::RFC6764->new({
+    check_carddav => 0,
+  });
+
+  my $conf = $ac->discover($email);
+
+  # Only care about carddav
+  $ac->discover($email, { check_caldav => 0 });
+
+  # ... or ...
+  my $ac = Autoconfigure::RFC6764->new({
+    check_caldav => 0,
+  });
+
+  my $conf = $ac->discover($email);
+
+=head1 DESCRIPTION
+
+This module performs service discovery of caldav/carddav URLs per
+L<https://tools.ietf.org/html/rfc6764>.
+
+It B<does not> (currently) attempt to resolve C<< /.well-known/.* >>
+URLs, but will return them instead if no TXT records are found providing
+the context paths.
+
+It also B<does not> attempt to validate/provide the correct usernames to
+use. That may come in a future version.
+
+=head1 CONSTRUCTION
+
+=head2 new
+
+  my $ac = Autoconfigure::RFC6764->new(\%opts);
+
+C<%opts> may contain:
+
+=over 4
+
+=item * check_caldav  1|0 (default: 1)
+
+=item * check_carddav 1|0 (default: 1)
+
+=back
+
+=head1 SEE ALSO
+
+=over 4
+
+=item * L<https://tools.ietf.org/html/rfc6764>
+
+Locating Services for Calendaring Extensions to WebDAV (CalDAV) and vCard
+Extensions to WebDAV (CardDAV)
+
+=item * L<https://tools.ietf.org/html/rfc6352#section-11>
+
+Service Discovery via SRV Records (for CardDAV)
+
+=back
+
+=cut
