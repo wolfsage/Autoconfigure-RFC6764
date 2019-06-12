@@ -90,57 +90,71 @@ sub basic_mocker {
 
   my $mock = __PACKAGE__->new;
 
-  $mock->add({
-    host     => '_caldavs._tcp.example.net',
-    type     => 'srv',
-    priority => 1,
-    weight   => 1,
-    target   => 'caldav.example.net',
-    port     => 443,
-  });
+  my $alt = $opt->{alt_ports};
+
+  unless ($opt->{no_secure}) {
+    $mock->add({
+      host     => '_caldavs._tcp.example.net',
+      type     => 'srv',
+      priority => 1,
+      weight   => 1,
+      target   => 'caldav.example.net',
+      port     => $alt ? 9443 : 443,
+    });
+  }
+
   $mock->add({
     host     => '_caldav._tcp.example.net',
     type     => 'srv',
     priority => 1,
     weight   => 1,
     target   => 'caldav.example.net',
-    port     => 80,
+    port     => $alt ? 8080 : 80,
   });
 
-  $mock->add({
-    host     => '_carddavs._tcp.example.net',
-    type     => 'srv',
-    priority => 1,
-    weight   => 1,
-    target   => 'carddav.example.net',
-    port     => 443,
-  });
+  unless ($opt->{no_secure}) {
+    $mock->add({
+      host     => '_carddavs._tcp.example.net',
+      type     => 'srv',
+      priority => 1,
+      weight   => 1,
+      target   => 'carddav.example.net',
+      port     => $alt ? 9444 : 443,
+    });
+  }
+
   $mock->add({
     host     => '_carddav._tcp.example.net',
     type     => 'srv',
     priority => 1,
     weight   => 1,
     target   => 'carddav.example.net',
-    port     => 80,
+    port     => $alt ? 8081 : 80,
   });
 
   if ($opt->{include_txt}) {
-    $mock->add({
-      host     => '_caldavs._tcp.example.net',
-      type     => 'txt',
-      txtdata  => [ "txtversion=1", "path=/foocalsecure" ],
-    });
+    unless ($opt->{no_secure}) {
+      $mock->add({
+        host     => '_caldavs._tcp.example.net',
+        type     => 'txt',
+        txtdata  => [ "txtversion=1", "path=/foocalsecure" ],
+      });
+    }
+
     $mock->add({
       host     => '_caldav._tcp.example.net',
       type     => 'txt',
       txtdata  => [ "txtversion=1", "path=/foocal" ],
     });
 
-    $mock->add({
-      host     => '_carddavs._tcp.example.net',
-      type     => 'txt',
-      txtdata  => [ "txtversion=1", "path=/foocardsecure" ],
-    });
+    unless ($opt->{no_secure}) {
+      $mock->add({
+        host     => '_carddavs._tcp.example.net',
+        type     => 'txt',
+        txtdata  => [ "txtversion=1", "path=/foocardsecure" ],
+      });
+    }
+
     $mock->add({
       host     => '_carddav._tcp.example.net',
       type     => 'txt',

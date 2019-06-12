@@ -9,6 +9,8 @@ use Test::Deep ':v1';
 use Test::Routine;
 use Test::Routine::Util;
 
+use Try::Tiny;
+
 use Autoconfigure::RFC6764;
 use Autoconfigure::RFC6764::MockDNSServer;
 
@@ -113,6 +115,85 @@ test "carddav only - override" => sub {
     },
     "got expected response",
   ) or diag explain $conf;
+};
+
+test "timeout" => sub {
+  ok(1);
+};
+
+test "bad email" => sub {
+  my $ac = basic_mocked_autoconfigure;
+
+  my $res = try {
+    $ac->discover("foobar"); # no @domain...
+  } catch {
+    $_;
+  };
+
+  like(
+    $res,
+    qr/\QInvalid email 'foobar'? No domain part detected\E/i,
+    "good error with bad email"
+  );
+};
+
+test "no secure records" => sub {
+  my $ac = basic_mocked_autoconfigure(
+    {},
+    { include_txt => 1, no_secure => 1 }
+  );
+
+  my $conf = $ac->discover('test@example.net');
+  cmp_deeply(
+    $conf,
+    {
+      caldav  => 'http://caldav.example.net/foocal',
+      carddav => 'http://carddav.example.net/foocard',
+    },
+    "good response",
+  ) or diag explain $conf;
+};
+
+test "different secure port" => sub {
+  my $ac = basic_mocked_autoconfigure(
+    {},
+    { include_txt => 1, alt_ports => 1 }
+  );
+
+  my $conf = $ac->discover('test@example.net');
+  cmp_deeply(
+    $conf,
+    {
+      caldav  => 'https://caldav.example.net:9443/foocalsecure',
+      carddav => 'https://carddav.example.net:9444/foocardsecure',
+    },
+    "good response",
+  ) or diag explain $conf;
+};
+
+test "different non-secure port" => sub {
+  my $ac = basic_mocked_autoconfigure(
+    {},
+    { include_txt => 1, no_secure => 1, alt_ports => 1 }
+  );
+
+  my $conf = $ac->discover('test@example.net');
+  cmp_deeply(
+    $conf,
+    {
+      caldav  => 'http://caldav.example.net:8080/foocal',
+      carddav => 'http://carddav.example.net:8081/foocard',
+    },
+    "good response",
+  ) or diag explain $conf;
+};
+
+test "srv sort prio" => sub {
+  ok(1);
+};
+
+test "srv sort weight" => sub {
+  ok(1);
 };
 
 run_me;

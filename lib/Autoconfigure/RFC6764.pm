@@ -3,6 +3,7 @@ use warnings;
 package Autoconfigure::RFC6764;
 #ABSTRACT: Service discovery for CalDav/CardDAV according to RFC 6764
 
+use Carp;
 use Moose;
 use Net::DNS;
 use IO::Select;
@@ -35,7 +36,9 @@ sub discover {
   my ($self, $email, $overrides) = @_;
 
   my (undef, $domain) = split m/@/, $email;
-  return {} unless $domain;
+  unless ($domain) {
+    croak("Invalid email '$email'? No domain part detected");
+  }
 
   $domain = lc $domain;
 
