@@ -8,7 +8,7 @@ use namespace::autoclean;
 use Carp qw(croak);
 use Storable qw(dclone);
 use Try::Tiny;
-use Test::TCP;
+use Test::TCP 2.15;
 use Net::DNS;
 
 has matchers => (
