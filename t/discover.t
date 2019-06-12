@@ -188,12 +188,65 @@ test "different non-secure port" => sub {
   ) or diag explain $conf;
 };
 
-test "srv sort prio" => sub {
-  ok(1);
-};
+test "srv sorts properly" => sub {
+  my $mock = Autoconfigure::RFC6764::MockDNSServer->new;
 
-test "srv sort weight" => sub {
-  ok(1);
+  # Lowest prio, lowest weight, won't get picked
+  $mock->add({
+      host     => '_caldavs._tcp.example.net',
+      type     => 'srv',
+      priority => 1,
+      weight   => 1,
+      target   => 'notpicked1.example.net',
+      port     => 443,
+  });
+
+  # Lowest prio, highest weight, will get picked
+  $mock->add({
+      host     => '_caldavs._tcp.example.net',
+      type     => 'srv',
+      priority => 1,
+      weight   => 10,
+      target   => 'picked.example.net',
+      port     => 443,
+  });
+
+  # Lowest prio, mid weight, won't get picked
+  $mock->add({
+      host     => '_caldavs._tcp.example.net',
+      type     => 'srv',
+      priority => 1,
+      weight   => 5,
+      target   => 'notpicked2.example.net',
+      port     => 443,
+  });
+
+  # Higher prio, won't get picked
+  $mock->add({
+      host     => '_caldavs._tcp.example.net',
+      type     => 'srv',
+      priority => 2,
+      weight   => 5,
+      target   => 'notpicked3.example.net',
+      port     => 443,
+  });
+
+  my $server = $mock->as_server;
+  my $ac = Autoconfigure::RFC6764->new({
+    resolver => Net::DNS::Resolver->new(
+      nameserver => [ '127.0.0.1' ],
+      port       => $server->port,
+    ),
+  });
+
+  my $conf = $ac->discover('test@example.net');
+  cmp_deeply(
+    $conf,
+    {
+      caldav  => 'https://picked.example.net/.well-known/caldav',
+    },
+    "good response",
+  ) or diag explain $conf;
 };
 
 run_me;
