@@ -1,4 +1,3 @@
-use lib qw(t/lib);
 use lib qw(lib);
 
 use strict;
