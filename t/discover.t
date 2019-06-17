@@ -265,5 +265,104 @@ test "timeout" => sub {
   ) or diag explain $conf;
 };
 
+test "secure only - construction time" => sub {
+  my $mock = Autoconfigure::RFC6764::MockDNSServer->new;
+
+  # Secure caldav, but no secure carddav. Should only find caldav
+  $mock->add({
+      host     => '_caldavs._tcp.example.net',
+      type     => 'srv',
+      priority => 1,
+      weight   => 1,
+      target   => 'secure.caldav.example.net',
+      port     => 443,
+  });
+
+  $mock->add({
+      host     => '_caldav._tcp.example.net',
+      type     => 'srv',
+      priority => 1,
+      weight   => 10,
+      target   => 'insecure.caldav.example.net',
+      port     => 80,
+  });
+
+  $mock->add({
+      host     => '_carddav._tcp.example.net',
+      type     => 'srv',
+      priority => 1,
+      weight   => 5,
+      target   => 'insecure.carddav.example.net',
+      port     => 80,
+  });
+
+  my $server = $mock->as_server;
+  my $ac = Autoconfigure::RFC6764->new({
+    resolver => Net::DNS::Resolver->new(
+      nameserver => [ '127.0.0.1' ],
+      port       => $server->port,
+    ),
+    secure_only => 1,
+  });
+
+  my $conf = $ac->discover('test@example.net');
+  cmp_deeply(
+    $conf,
+    {
+      caldav  => 'https://secure.caldav.example.net/.well-known/caldav',
+    },
+    "with secure only and no secure options, no results",
+  ) or diag explain $conf;
+};
+
+test "secure only - override" => sub {
+  my $mock = Autoconfigure::RFC6764::MockDNSServer->new;
+
+  # Secure caldav, but no secure carddav. Should only find caldav
+  $mock->add({
+      host     => '_caldavs._tcp.example.net',
+      type     => 'srv',
+      priority => 1,
+      weight   => 1,
+      target   => 'secure.caldav.example.net',
+      port     => 443,
+  });
+
+  $mock->add({
+      host     => '_caldav._tcp.example.net',
+      type     => 'srv',
+      priority => 1,
+      weight   => 10,
+      target   => 'insecure.caldav.example.net',
+      port     => 80,
+  });
+
+  $mock->add({
+      host     => '_carddav._tcp.example.net',
+      type     => 'srv',
+      priority => 1,
+      weight   => 5,
+      target   => 'insecure.carddav.example.net',
+      port     => 80,
+  });
+
+  my $server = $mock->as_server;
+  my $ac = Autoconfigure::RFC6764->new({
+    resolver => Net::DNS::Resolver->new(
+      nameserver => [ '127.0.0.1' ],
+      port       => $server->port,
+    ),
+  });
+
+  my $conf = $ac->discover('test@example.net', { secure_only => 1 });
+  cmp_deeply(
+    $conf,
+    {
+      caldav  => 'https://secure.caldav.example.net/.well-known/caldav',
+    },
+    "with secure only and no secure options, no results",
+  ) or diag explain $conf;
+};
+
 run_me;
 done_testing;

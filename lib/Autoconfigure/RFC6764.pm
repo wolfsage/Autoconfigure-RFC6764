@@ -20,6 +20,12 @@ has timeout => (
   default => sub { 5 },
 );
 
+has secure_only => (
+  is      => 'ro',
+  isa     => 'Bool',
+  default => 0,
+);
+
 has check_caldav => (
   is      => 'ro',
   isa     => 'Bool',
@@ -56,18 +62,29 @@ sub discover {
     croak("Need at least one of check_caldav or check_carddav!");
   }
 
+  my $secure_only = exists $overrides->{secure_only}
+                       ? $overrides->{secure_only}
+                       : $self->secure_only;
+
+
   if ($check_caldav) {
     $to_lookup{"_caldavs._tcp.$domain"}{srv} = 1;
-    $to_lookup{"_caldav._tcp.$domain"}{srv} = 1;
     $to_lookup{"_caldavs._tcp.$domain"}{txt} = 1;
-    $to_lookup{"_caldav._tcp.$domain"}{txt} = 1;
+
+    unless ($secure_only) {
+      $to_lookup{"_caldav._tcp.$domain"}{srv} = 1;
+      $to_lookup{"_caldav._tcp.$domain"}{txt} = 1;
+    }
   }
 
   if ($check_carddav) {
     $to_lookup{"_carddavs._tcp.$domain"}{srv} = 1;
-    $to_lookup{"_carddav._tcp.$domain"}{srv} = 1;
     $to_lookup{"_carddavs._tcp.$domain"}{txt} = 1;
-    $to_lookup{"_carddav._tcp.$domain"}{txt} = 1;
+
+    unless ($secure_only) {
+      $to_lookup{"_carddav._tcp.$domain"}{srv} = 1;
+      $to_lookup{"_carddav._tcp.$domain"}{txt} = 1;
+    }
   }
 
   my $records = $self->lookup(\%to_lookup);
@@ -247,6 +264,16 @@ __END__
 
   my $conf = $ac->discover($email);
 
+  # Only want secure urls
+  $ac->discover($email, { secure_only => 1 });
+
+  # ... or ...
+  my $ac = Autoconfigure::RFC6764->new({
+    secure_only => 1,
+  });
+
+  my $conf = $ac->discover($email);
+
 =head1 DESCRIPTION
 
 This module performs service discovery of caldav/carddav URLs per
@@ -271,7 +298,15 @@ C<%opts> may contain:
 
 =item * check_caldav  1|0 (default: 1)
 
+Try to discover caldav configuration info.
+
 =item * check_carddav 1|0 (default: 1)
+
+Try to discover carddav configuration info.
+
+=item * secure_only   1|0 (default: 0)
+
+Only search for and include https endpoints.
 
 =back
 
