@@ -1,4 +1,4 @@
-package Autoconfigure::RFC6764::MockDNSServer;
+package Net::Autoconfigure::RFC6764::MockDNSServer;
 
 use Moose;
 use MooseX::StrictConstructor;

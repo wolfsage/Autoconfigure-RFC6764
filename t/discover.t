@@ -10,11 +10,11 @@ use Test::Routine::Util;
 
 use Try::Tiny;
 
-use Autoconfigure::RFC6764;
-use Autoconfigure::RFC6764::MockDNSServer;
+use Net::Autoconfigure::RFC6764;
+use Net::Autoconfigure::RFC6764::MockDNSServer;
 
 sub basic_mocker {
-  Autoconfigure::RFC6764::MockDNSServer->basic_mocker(@_);
+  Net::Autoconfigure::RFC6764::MockDNSServer->basic_mocker(@_);
 }
 
 sub basic_mocked_autoconfigure {
@@ -24,7 +24,7 @@ sub basic_mocked_autoconfigure {
 
   my $mock = basic_mocker($mock_args);
   my $server = $mock->as_server;
-  my $ac = Autoconfigure::RFC6764->new({
+  my $ac = Net::Autoconfigure::RFC6764->new({
     %$ac_args,
     resolver => $mock->resolver_for($server),
   });
@@ -184,7 +184,7 @@ test "different non-secure port" => sub {
 };
 
 test "srv sorts properly" => sub {
-  my $mock = Autoconfigure::RFC6764::MockDNSServer->new;
+  my $mock = Net::Autoconfigure::RFC6764::MockDNSServer->new;
 
   # Lowest prio, lowest weight, won't get picked
   $mock->add({
@@ -227,7 +227,7 @@ test "srv sorts properly" => sub {
   });
 
   my $server = $mock->as_server;
-  my $ac = Autoconfigure::RFC6764->new({
+  my $ac = Net::Autoconfigure::RFC6764->new({
     resolver => Net::DNS::Resolver->new(
       nameserver => [ '127.0.0.1' ],
       port       => $server->port,
@@ -266,7 +266,7 @@ test "timeout" => sub {
 };
 
 test "secure only - construction time" => sub {
-  my $mock = Autoconfigure::RFC6764::MockDNSServer->new;
+  my $mock = Net::Autoconfigure::RFC6764::MockDNSServer->new;
 
   # Secure caldav, but no secure carddav. Should only find caldav
   $mock->add({
@@ -297,7 +297,7 @@ test "secure only - construction time" => sub {
   });
 
   my $server = $mock->as_server;
-  my $ac = Autoconfigure::RFC6764->new({
+  my $ac = Net::Autoconfigure::RFC6764->new({
     resolver => Net::DNS::Resolver->new(
       nameserver => [ '127.0.0.1' ],
       port       => $server->port,
@@ -316,7 +316,7 @@ test "secure only - construction time" => sub {
 };
 
 test "secure only - override" => sub {
-  my $mock = Autoconfigure::RFC6764::MockDNSServer->new;
+  my $mock = Net::Autoconfigure::RFC6764::MockDNSServer->new;
 
   # Secure caldav, but no secure carddav. Should only find caldav
   $mock->add({
@@ -347,7 +347,7 @@ test "secure only - override" => sub {
   });
 
   my $server = $mock->as_server;
-  my $ac = Autoconfigure::RFC6764->new({
+  my $ac = Net::Autoconfigure::RFC6764->new({
     resolver => Net::DNS::Resolver->new(
       nameserver => [ '127.0.0.1' ],
       port       => $server->port,

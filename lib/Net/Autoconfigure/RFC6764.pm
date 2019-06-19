@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-package Autoconfigure::RFC6764;
+package Net::Autoconfigure::RFC6764;
 #ABSTRACT: Service discovery for CalDav/CardDAV according to RFC 6764
 
 use Carp;
@@ -235,9 +235,9 @@ __END__
 
 =head1 SYNOPSIS
 
-  use Autoconfigure::RFC6764;
+  use Net::Autoconfigure::RFC6764;
 
-  my $ac = Autoconfigure::RFC6764->new;
+  my $ac = Net::Autoconfigure::RFC6764->new;
 
   my $conf = $ac->discover('foo@example.net');
 
@@ -248,7 +248,7 @@ __END__
   $ac->discover($email, { check_carddav => 0 });
 
   # ... or ...
-  my $ac = Autoconfigure::RFC6764->new({
+  my $ac = Net::Autoconfigure::RFC6764->new({
     check_carddav => 0,
   });
 
@@ -258,7 +258,7 @@ __END__
   $ac->discover($email, { check_caldav => 0 });
 
   # ... or ...
-  my $ac = Autoconfigure::RFC6764->new({
+  my $ac = Net::Autoconfigure::RFC6764->new({
     check_caldav => 0,
   });
 
@@ -268,7 +268,7 @@ __END__
   $ac->discover($email, { secure_only => 1 });
 
   # ... or ...
-  my $ac = Autoconfigure::RFC6764->new({
+  my $ac = Net::Autoconfigure::RFC6764->new({
     secure_only => 1,
   });
 
@@ -290,7 +290,7 @@ use. That may come in a future version.
 
 =head2 new
 
-  my $ac = Autoconfigure::RFC6764->new(\%opts);
+  my $ac = Net::Autoconfigure::RFC6764->new(\%opts);
 
 C<%opts> may contain:
 
